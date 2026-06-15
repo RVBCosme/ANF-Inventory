@@ -1,0 +1,17 @@
+{
+  "name": "anf-inventory",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["shared", "server", "web", "launcher"],
+  "scripts": {
+    "build:shared": "npm run build -w @anf/shared",
+    "build": "npm run build:shared && npm run build -w @anf/web && npm run build -w @anf/server",
+    "dev": "npm run build:shared && concurrently -n server,web -c blue,magenta \"npm run dev -w @anf/server\" \"npm run dev -w @anf/web\"",
+    "start": "npm run build:shared && node server/dist/index.js",
+    "test": "npm run test -w @anf/shared && npm run test -w @anf/server && npm run test -w @anf/web && npm run test -w @anf/launcher && node --test ../scripts/*.test.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ANF Inventory</title>
+    <style>
+      :root { --page:#F9E7E7; --surface:#FFFFFF; --primary:#4E6A60; --ink:#2E2A2B; --muted:#6B6266; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: var(--page); color: var(--ink);
+        font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif; font-size: 20px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      main {
+        background: var(--surface); border-radius: 20px; padding: 48px 40px;
+        max-width: 540px; width: 92%; text-align: center;
+        box-shadow: 0 10px 40px rgba(46, 42, 43, 0.12);
+      }
+      h1 { color: var(--primary); font-size: 2rem; margin: 0 0 8px; }
+      .spinner {
+        width: 64px; height: 64px; margin: 28px auto; border-radius: 50%;
+        border: 8px solid #E4DADA; border-top-color: var(--primary);
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      #msg { font-size: 1.5rem; font-weight: 700; margin: 8px 0; }
+      #sub { color: var(--muted); line-height: 1.6; margin: 8px 0 24px; }
+      a#manual { color: var(--primary); font-size: 1.05rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>ANF Inventory</h1>
+      <div class="spinner" aria-hidden="true"></div>
+      <p id="msg">Starting…</p>
+      <p id="sub">Please keep this page open — ANF Inventory opens here automatically when it's ready.</p>
+      <p><a id="manual" href="http://localhost:4000/">Taking too long? Click here to open the app.</a></p>
+    </main>
+    <script>
+      var APP = "http://localhost:4000/";
+      if (new URLSearchParams(location.search).has("setup")) {
+        document.getElementById("msg").textContent = "Setting up for first use…";
+        document.getElementById("sub").textContent =
+          "Installing the components it needs. This can take a few minutes — ANF Inventory opens here automatically when it's ready. Please keep this page open.";
+      }
+      // When the server answers, this loading page redirects itself to the app —
+      // the loading screen becomes the homepage (one tab). The manual link below
+      // is the fallback if a browser blocks this cross-origin probe.
+      var waited = 0;
+      function poll() {
+        fetch(APP + "api/health", { mode: "no-cors", cache: "no-store" })
+          .then(function () { location.replace(APP); })
+          .catch(function () {
+            waited += 1;
+            if (waited === 180) {
+              document.getElementById("sub").textContent =
+                "Still working… if a setup window showed an error, please show it to your helper.";
+            }
+            setTimeout(poll, 1000);
+          });
+      }
+      poll();
+    </script>
+  </body>
+</html>

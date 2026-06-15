@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ANF Inventory — One-time setup needed</title>
+    <style>
+      :root { --page:#F9E7E7; --surface:#FFFFFF; --primary:#4E6A60; --ink:#2E2A2B; --muted:#6B6266; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: var(--page); color: var(--ink);
+        font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif; font-size: 20px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      main {
+        background: var(--surface); border-radius: 20px; padding: 48px 40px;
+        max-width: 600px; width: 92%; line-height: 1.6;
+        box-shadow: 0 10px 40px rgba(46, 42, 43, 0.12);
+      }
+      h1 { color: var(--primary); font-size: 1.8rem; margin: 0 0 16px; }
+      ol { padding-left: 1.2em; } li { margin: 10px 0; }
+      a.btn {
+        display: inline-block; margin: 18px 0; background: var(--primary); color: #fff;
+        text-decoration: none; padding: 14px 24px; border-radius: 12px; font-size: 1.15rem; font-weight: 700;
+      }
+      .muted { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>One quick thing first</h1>
+      <p>ANF Inventory needs a free helper called <strong>Node.js</strong> installed on this computer. This is a one-time step.</p>
+      <ol>
+        <li>Click the button below to open the Node.js website.</li>
+        <li>Download the <strong>LTS</strong> version and run the installer with the default options.</li>
+        <li>When it finishes, start <strong>ANF Inventory</strong> again.</li>
+      </ol>
+      <p><a class="btn" href="https://nodejs.org/en/download" target="_blank" rel="noreferrer">Get Node.js</a></p>
+      <p class="muted">If you're not sure, ask whoever set up this computer to do this once.</p>
+    </main>
+  </body>
+</html>
