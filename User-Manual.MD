@@ -267,3 +267,29 @@ ANF - Inventory System\        ← repo root (run git here)
 | `GET /api/orders/:id/pdf` | Download an order's PDF. |
 | `GET /api/receipts/:filename` | Download a stock receipt. |
 | `GET /api/history?action=&range=&limit=` | Recent activity log. Optional `action` (`place_order`, `add_item`, `add_stock`, `edit_item`, `delete_item`) and `range` (`1d`, `3d`, `1w`, `1m`, `3m`, `6m`, `all`) filters; bad values fall back to all. |
+
+### Publishing a release & installing on another PC (maintainers)
+
+The end user never receives the development files (`docs/`, `memory/`, `*-CLAUDE.md`). They
+clone a separate **public** repo that contains only the app. To publish the current code there:
+
+> From the repo root: **`node scripts/make-release.mjs`**
+
+This copies only `system/`, `User-Manual.MD`, and `LICENSE` from the last **commit** (not your
+working tree) into the public repo `https://github.com/RVBCosme/ANF-Inventory` as one new commit.
+A built-in guard aborts the publish if any development file would leak. If nothing changed since
+the last release it prints "Nothing to publish."
+
+**Install on a client PC (first time):**
+1. Install **Node.js 20+** (see [section 2](#2-what-you-need-first-time-only)) and **Git**.
+2. Open PowerShell and clone the public repo into a per-user folder (no admin rights needed):
+   ```powershell
+   git clone https://github.com/RVBCosme/ANF-Inventory.git "$env:LOCALAPPDATA\ANF-Inventory"
+   ```
+3. Double-click `system\Start ANF Inventory.bat` inside that folder. The first run installs and
+   builds automatically (the "Setting up for first use…" page), then opens the app.
+
+**Update a client PC:** in that folder, run `git pull`, then double-click
+`system\Start ANF Inventory.bat` again (it rebuilds automatically). Do **not** install into
+`Program Files` — the app writes its data, build output, and database inside its own folder, which
+a standard user cannot do there.
