@@ -1,5 +1,4 @@
 import path from "node:path";
-import http from "node:http";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
 import {
@@ -10,10 +9,10 @@ import {
   writeState,
 } from "./setup-check.mjs";
 import { waitForHealthy } from "./health.mjs";
+import { CANDIDATE_PORTS, probeAnf, findRunningAnf, pickFreePort } from "./ports.mjs";
 
 const launcherDir = path.dirname(fileURLToPath(import.meta.url));
 const systemDir = path.resolve(launcherDir, "..");
-const PORT = 4000;
 
 // Open a URL (http or file://) in the user's default browser, non-blocking.
 function openInBrowser(target) {
@@ -22,25 +21,6 @@ function openInBrowser(target) {
 
 function pageUrl(name, query = "") {
   return pathToFileURL(path.join(launcherDir, name)).href + query;
-}
-
-function probeHealth(port) {
-  return new Promise((resolve) => {
-    const req = http.get(
-      { host: "localhost", port, path: "/api/health", timeout: 1500 },
-      (res) => {
-        // Any HTTP response means a server is already on :4000 (ours, or — per the
-        // spec — a foreign process we must not duplicate). Treat it as "serving".
-        res.resume();
-        resolve(true);
-      },
-    );
-    req.on("error", () => resolve(false));
-    req.on("timeout", () => {
-      req.destroy();
-      resolve(false);
-    });
-  });
 }
 
 function runStep(label, cmd, args) {
@@ -56,18 +36,30 @@ function fail(stage) {
 }
 
 async function main() {
-  // Already running? Just open the app; don't start a duplicate.
-  if (await probeHealth(PORT)) {
-    openInBrowser("http://localhost:" + PORT + "/");
+  // Already running on any candidate? Open ANF — never start a duplicate, and never
+  // open a foreign program that merely happens to hold :4000.
+  const running = await findRunningAnf(CANDIDATE_PORTS);
+  if (running !== null) {
+    openInBrowser("http://localhost:" + running + "/");
     return;
+  }
+
+  // Choose ANF's port: prefer 4000, step past whatever holds it.
+  const port = await pickFreePort(CANDIDATE_PORTS);
+  if (port === null) {
+    const first = CANDIDATE_PORTS[0];
+    const last = CANDIDATE_PORTS[CANDIDATE_PORTS.length - 1];
+    console.error("\nNo free port available in " + first + "-" + last + ".");
+    openInBrowser(pageUrl("setup-failed.html"));
+    process.exit(1);
   }
 
   const doInstall = needsInstall(systemDir);
   const doBuild = needsBuild(systemDir);
   const setup = doInstall || doBuild;
-  // First run / after update: show the splash, which polls health and redirects
-  // itself to the app when ready (the loading screen becomes the homepage).
-  if (setup) openInBrowser(pageUrl("loading.html", "?setup=1"));
+  // First run / after update: show the splash, which polls health and redirects itself
+  // to the app (on this port) when ready.
+  if (setup) openInBrowser(pageUrl("loading.html", "?setup=1&port=" + port));
 
   if (doInstall) {
     if (!runStep("Installing components", "npm", ["install"])) fail("install");
@@ -78,10 +70,11 @@ async function main() {
     writeState(systemDir, { buildHash: computeBuildHash(systemDir) });
   }
 
-  console.log("\nStarting ANF Inventory at http://localhost:" + PORT + " ...");
+  console.log("\nStarting ANF Inventory at http://localhost:" + port + " ...");
   const srv = spawn("node", [path.join(systemDir, "server", "dist", "index.js")], {
     cwd: systemDir,
     stdio: "inherit",
+    env: { ...process.env, PORT: String(port) },
   });
   srv.on("error", (err) => {
     console.error("\nCould not start the server: " + err.message);
@@ -90,15 +83,14 @@ async function main() {
   });
   srv.on("exit", (code) => process.exit(code ?? 0));
 
-  // Warm launches show no splash, so the orchestrator opens the app itself once
-  // the server answers (bare Node, with no file:// limit). On the setup path the
-  // splash polls health and redirects itself, so we don't open a second tab.
+  // Warm launches show no splash, so the orchestrator opens the app once the server
+  // answers on this port (bare Node, no file:// limit).
   if (!setup) {
-    const healthy = await waitForHealthy(() => probeHealth(PORT), { attempts: 60, delayMs: 1000 });
+    const healthy = await waitForHealthy(() => probeAnf(port), { attempts: 60, delayMs: 1000 });
     if (!healthy) {
       console.error("\nThe server is taking longer than expected to respond; opening the app anyway.");
     }
-    openInBrowser("http://localhost:" + PORT + "/");
+    openInBrowser("http://localhost:" + port + "/");
   }
 }
 

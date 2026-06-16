@@ -1,7 +1,7 @@
 {
   "name": "anf-inventory",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "workspaces": ["shared", "server", "web", "launcher"],
   "scripts": {
     "build:shared": "npm run build -w @anf/shared",

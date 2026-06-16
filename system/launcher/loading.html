@@ -38,7 +38,12 @@
       <p><a id="manual" href="http://localhost:4000/">Taking too long? Click here to open the app.</a></p>
     </main>
     <script>
-      var APP = "http://localhost:4000/";
+      // Only accept a purely-numeric port from the query; anything else (e.g.
+      // "@evil.com", which would turn localhost into URL userinfo) falls back to 4000.
+      var rawPort = new URLSearchParams(location.search).get("port");
+      var port = /^[0-9]{1,5}$/.test(rawPort) ? rawPort : "4000";
+      var APP = "http://localhost:" + port + "/";
+      document.getElementById("manual").href = APP;
       if (new URLSearchParams(location.search).has("setup")) {
         document.getElementById("msg").textContent = "Setting up for first use…";
         document.getElementById("sub").textContent =

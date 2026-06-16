@@ -237,8 +237,10 @@ ANF - Inventory System\        ← repo root (run git here)
 
 ### Configuration
 
-- **Port:** defaults to **4000**. Override with the `PORT` environment variable, e.g. in
-  PowerShell: `$env:PORT = 4100; npm start`.
+- **Port:** ANF uses **4000** when it's free, otherwise the next free port up to **4009** — so it
+  coexists with another program already on 4000. The launcher opens the right one automatically.
+  (Advanced: force a specific port with the `PORT` environment variable, e.g. in PowerShell:
+  `$env:PORT = 4100; npm start`.)
 - **Production serving:** when `web\dist` exists, the server serves the built UI and
   routes all non-`/api` paths to the single-page app — so one server at port 4000 serves
   both the API and the website.
@@ -256,7 +258,7 @@ ANF - Inventory System\        ← repo root (run git here)
 
 | Method & path | Purpose |
 |---------------|---------|
-| `GET /api/health` | Health check (`{ ok: true }`). |
+| `GET /api/health` | Health check (`{ ok: true, app: "anf-inventory" }`). |
 | `GET /api/products?query=` | List/search products (matches name, category, or ID). |
 | `GET /api/products/categories` | Distinct non-empty categories, sorted. |
 | `POST /api/products` | Create a product (optional `category`). |
@@ -278,7 +280,9 @@ clone a separate **public** repo that contains only the app. To publish the curr
 This copies only `system/`, `User-Manual.MD`, and `LICENSE` from the last **commit** (not your
 working tree) into the public repo `https://github.com/RVBCosme/ANF-Inventory` as one new commit.
 A built-in guard aborts the publish if any development file would leak. If nothing changed since
-the last release it prints "Nothing to publish."
+the last release it prints "Nothing to publish." On a publish with real changes it automatically
+bumps the patch version (e.g. `1.0.0` → `1.0.1`) and commits that bump to your dev repo; if you
+want a larger jump, bump first yourself (`npm version minor` or `major`, run in `system\`).
 
 **Install on a client PC (first time):**
 1. Install **Node.js 20+** (see [section 2](#2-what-you-need-first-time-only)) and **Git**.

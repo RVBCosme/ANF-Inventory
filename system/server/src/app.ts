@@ -14,7 +14,7 @@ export function createApp(db: DB, dataDir: string) {
   const app = express();
   app.use(express.json());
 
-  app.get("/api/health", (_req, res) => res.json({ ok: true }));
+  app.get("/api/health", (_req, res) => res.json({ ok: true, app: "anf-inventory" }));
   app.use("/api/products", productsRouter(db));
   app.use("/api/stock-receipts", stockReceiptsRouter(db, dataDir));
   app.use("/api/orders", ordersRouter(db, dataDir));
